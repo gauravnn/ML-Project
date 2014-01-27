@@ -1,0 +1,4 @@
+from google import search
+    
+for url in search('georgia tech', stop=20):
+	print(url)

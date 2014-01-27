@@ -1,0 +1,51 @@
+# Stripped down HTTP Server, modified for this purpose
+
+import string,cgi,time
+from os import curdir, sep, getenv
+from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
+import urlparse
+import dialog_manager as dm
+
+import trainer as tr
+import utility as ut
+import trainer_reader as rdr
+
+Dialog_Manager = dm.dialog_manager()
+
+# Stripped down HTTP Server to respone 
+class MyHandler(BaseHTTPRequestHandler):
+
+    def do_GET(self):
+        try:
+		if(not self.path.endswith('.ico')):
+			self.send_response(200)
+		        self.send_header('Content-type','text/html')
+       		        self.end_headers()
+	
+			response = ''
+			get_variables = urlparse.parse_qs(urlparse.urlparse(self.path).query)
+			string = get_variables.get('message',['blah blah blah blah'])[0]
+			annotation = get_variables.get('anno',[1])[0]
+			
+			result_string = Dialog_Manager.get_reply(string, annotation)
+       		        self.wfile.write(result_string)
+		                
+        except IOError:
+            self.send_error(404,'File Not Found: %s' % self.path)
+     
+
+    def do_POST(self):
+        pass
+
+def main():
+    try:
+        server = HTTPServer(('', 8080), MyHandler)
+        print 'started httpserver...'
+        server.serve_forever()
+    except KeyboardInterrupt:
+        print '^C received, shutting down server'
+        server.socket.close()
+
+if __name__ == '__main__':
+    main()
+
